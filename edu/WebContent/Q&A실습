@@ -1,0 +1,62 @@
+실습 Q&A 
+-질문내용과 댓글은 글 작성자와 관리자만 확인가능
+-댓글은 관리자만 작성가능
+-댓글형태로 answer를 구현했다면 QA목록에서 댓글여부를 표시해줄 것
+
+---DB
+create table question(
+id            number constraint question_id_pk primary key, 
+title         varchar2(300) not null,
+content       varchar2(4000) not null,
+writer        varchar2(50) not null,
+writedate     date default sysdate,
+readcnt       number default 0,
+constraint question_writer_fk foreign key(writer)
+                      references member(id) on delete cascade 
+);
+
+create sequence seq_question start with 1 increment by 1;
+
+create or replace trigger trg_question
+before insert on question
+	for each row
+begin
+	select seq_question.nextval into :new.id from dual;
+end;
+/
+
+
+create table answer (
+id          number, /* 댓글번호 */
+question_id    number, /* 원글(question)의 아이디  */ 
+writer      varchar2(50), /* 댓글작성자:로그인한 회원의아이디 */
+writedate   date default sysdate,
+content     varchar2(4000) not null, /* 댓글내용 */
+constraint answer_id_pk primary key(id),
+constraint answer_question_id_fk foreign key(question_id)
+                              references question(id) on delete cascade,
+constraint answer_writer_fk foreign key(writer)
+		      references member(id)  on delete cascade                                
+);
+
+create sequence seq_answer
+start with 1 increment by 1;
+
+create or replace trigger trg_answer
+before insert on answer
+	for each row
+begin
+	select seq_answer.nextval into :new.id from dual;
+end;
+/
+
+--answer작성될 때 question의 complete를 Y로 변경
+--해야할것
+질문 상세정보보기-작성자와 관리자만 가능
+질문 게시물 변경
+질문 삭제
+댓글 달기/답변여부 변경 - 관리자만 가능
+댓글 삭제
+댓글 수정
+조회수 처리
+페이지처리

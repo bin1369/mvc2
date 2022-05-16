@@ -1,0 +1,57 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+</head>
+<body>
+<jsp:include page="/include/header.jsp"/>
+<h3>답글쓰기</h3>
+
+<form method='post' enctype='multipart/form-data' action='reply_insert.no'>
+<input type='hidden' name='writer' value='${loginInfo.id}'>
+<input type='hidden' name='root' value='${dto.root}'>
+<input type='hidden' name='step' value='${dto.step}'>
+<input type='hidden' name='indent' value='${dto.indent}'>
+<table class='w-px1000'>
+<tr><th class='w-px120'>제목</th>
+	<td><input type='text' class='chk' title='제목' name='title'></td>
+</tr>
+<tr><th>작성자</th><td>${loginInfo.name}</td></tr>
+<tr><th>내용</th>
+	<td><textarea name='content' title='내용' class='chk'></textarea></td>
+</tr>
+<tr><th>첨부파일</th>
+	<td class='text-left'>
+		<label>
+			<input type='file' name='file' id='attach-file'>
+			<i class="font-b fas fa-upload"></i>
+		</label>
+		<span id='file-name'></span>
+		<a id='delete-file'><i class="font-r far fa-trash-alt"></i></a>
+	</td>
+</tr>
+</table>
+<input type='hidden' name='curPage' value='${param.curPage}' >
+<input type='hidden' name='search' value='${param.search}' >
+<input type='hidden' name='keyword' value='${param.keyword}' >
+</form>
+<div class='btnSet'>
+	<a class='btn-fill' onclick='$("form").submit()'>저장</a>
+	<a class='btn-empty' href='detail.no?id=${dto.id}&curPage=${param.curPage}&search=${param.search}&keyword=${param.keyword}'>취소</a>
+</div>
+
+<jsp:include page="/include/footer.jsp"/>
+</body>
+</html>
+
+
+
+
+
+
+
+
+

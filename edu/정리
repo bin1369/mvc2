@@ -1,0 +1,183 @@
+MVC2 패턴 (Model View Controller)
+
+View: 사용자에게 보여질 화면 담당(html,jsp)
+1. 웹브라우저를 통해 사용자의 요청이 발생하면 Controller 에 전달된다.
+5. 응답요청된 화면에는 DTO의 데이터를 출력한다
+
+
+Controller: 요청을 파악하고 요청에 맞는 처리를 하고 화면 연결 지정
+2. 요청이 무엇인지에 따라 Command 를 실행한다.
+    Command 에서는 요청에 대한 DB의 데이터를 조회하거나
+                         DB 에 데이터를 저장/변경/삭제 처리
+4. 응답할 화면을 지정한다.
+
+
+Model : DAO, DTO                       
+3.	DB의 데이터를 조회요청에 대해 DAO 의 메소드를 통해 조회한 정보를 DTO에 담는다.
+	저장/변경/삭제 처리 요청에 대해 화면에서 입력한 정보가  DTO 에 담겨져 DAO의 메소드를 통해
+	DB 에      저장/변경/삭제 처리를 한다.
+   
+
+   
+   
+   
+테이블설계
+고객관리
+create table customer(
+id			number constraint customer_id_pk primary key,
+name		varchar2(50) not null,
+gender		varchar2(3) default '남' not null,
+email		varchar2(50),
+phone		varchar2(13)
+);   
+
+create sequence seq_customer
+start with 1 increment by 1;
+
+create or replace trigger trg_customer
+	before insert on customer
+	for each row
+begin
+	select seq_customer.nextval into :new.id from dual;
+end;
+/
+
+클라우드DB
+김민규 edu1 - Spring20211001
+이명한 edu2 - Spring20211001
+전시안 edu3 - Spring20211001
+
+
+회원관리 -edu 유저에 저장
+create table member(
+name            varchar2(50) not null,
+id              varchar2(50) constraint member_id_pk primary key,
+pw              varchar2(50) not null,
+gender          varchar2(3) default '남' not null,
+email			varchar2(50) not null,
+birth           date,
+phone           varchar2(13),
+post            varchar2(7),
+address         varchar2(300),
+admin           varchar2(1) default 'N'
+);
+
+
+
+비밀번호를 암호화하여 관리하는 경우
+salt: 비밀번호를 단방향함수를 사용해 암호화하는데 사용되는 랜덤 데이터
+alter table member add( salt varchar2(200), salt_pw varchar2(400) );
+단방향 암호화: sha256
+
+
+공지글 관리
+create table notice(
+id          number constraint notice_id_pk primary key,
+title       varchar2(300) not null,
+writer      varchar2(50) not null/* 작성자의 아이디 */,
+content     varchar2(4000) not null,
+writedate   date default sysdate, 
+readcnt     number default 0,
+filename    varchar2(200),
+filepath    varchar2(400),
+root        number,
+step        number default 0,
+indent      number default 0,
+constraint notice_writer_fk foreign key(writer) 
+							references member(id)
+);
+
+notice 에 적용할 시퀀스
+create sequence seq_notice start with 1 increment by 1;
+
+파일첨부하기 위한 컬럼들
+alter table notice 
+add (filename    varchar2(200),
+     filepath    varchar2(400) );
+
+
+답글관리를 위한 컬럼들
+alter table notice
+add (root        number,
+	 step        number default 0,
+     indent      number default 0 );
+
+
+select id, root, step, indent
+from notice;
+
+update notice set root = id;
+commit;
+
+
+
+방명록관리
+create table board(
+id            number constraint board_id_pk primary key,
+title         varchar2(300) not null,
+content       varchar2(4000) not null,
+writer        varchar2(50) not null,
+writedate     date default sysdate,
+readcnt       number default 0,
+filename      varchar2(200),
+filepath      varchar2(400),
+constraint board_writer_fk foreign key(writer)
+                      references member(id) on delete cascade 
+);
+
+create sequence seq_board start with 1 increment by 1;
+
+create or replace trigger trg_board
+	before insert on board
+	for each row
+begin
+	select seq_board.nextval into :new.id from dual;
+end;
+/
+
+
+댓글관리
+create table board_comment (
+id          number, /* 댓글의 아이디 */
+board_id    number, /* 원글(board)의 아이디  */ 
+writer      varchar2(50), /* 댓글작성자:로그인한 회원의아이디 */
+writedate   date default sysdate,
+content     varchar2(4000) not null, /* 댓글내용 */
+constraint b_comment_id_pk primary key(id),
+constraint b_comment_board_id_fk foreign key(board_id)
+                              references board(id) on delete cascade,
+constraint b_comment_writer_fk foreign key(writer)
+							references member(id)  on delete cascade                                
+);
+
+create sequence seq_board_comment
+start with 1 increment by 1;
+
+create or replace trigger trg_board_comment 
+before insert on board_comment
+for each row
+begin
+	select seq_board_comment.nextval into :new.id from dual;
+end;
+/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

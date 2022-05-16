@@ -1,0 +1,115 @@
+sqlplus system/0000
+
+create user edu identified by 0000;
+grant dba to edu;
+
+sqlplus edu/0000
+
+create table customer(
+id		number constraint customer_id_pk primary key,
+name		varchar2(50) not null,
+gender		varchar2(3) default '남' not null,
+email		varchar2(50),
+phone		varchar2(13)
+);   
+
+create sequence seq_customer
+start with 1 increment by 1;
+
+create or replace trigger trg_customer
+	before insert on customer
+	for each row
+begin
+	select seq_customer.nextval into :new.id from dual;
+end;
+/
+
+
+create table member(
+name            varchar2(50) not null,
+id              varchar2(50) constraint member_id_pk primary key,
+pw              varchar2(50) not null,
+gender          varchar2(3) default '남' not null,
+email			varchar2(50) not null,
+birth           date,
+phone           varchar2(13),
+post            varchar2(7),
+address         varchar2(300),
+admin           varchar2(1) default 'N',
+salt            varchar2(200), 
+salt_pw         varchar2(400)
+);
+
+
+create table notice(
+id          number constraint notice_id_pk primary key,
+title       varchar2(300) not null,
+writer      varchar2(50) not null/* 작성자의 아이디 */,
+content     varchar2(4000) not null,
+writedate   date default sysdate, 
+readcnt     number default 0,
+filename    varchar2(200),
+filepath    varchar2(400),
+root        number,
+step        number default 0,
+indent      number default 0,
+constraint notice_writer_fk foreign key(writer) 
+							references member(id)
+);
+
+create sequence seq_notice start with 1 increment by 1;
+
+
+
+create table board(
+id            number constraint board_id_pk primary key,
+title         varchar2(300) not null,
+content       varchar2(4000) not null,
+writer        varchar2(50) not null,
+writedate     date default sysdate,
+readcnt       number default 0,
+filename      varchar2(200),
+filepath      varchar2(400),
+constraint board_writer_fk foreign key(writer)
+                      references member(id) on delete cascade 
+);
+
+create sequence seq_board start with 1 increment by 1;
+
+create or replace trigger trg_board
+	before insert on board
+	for each row
+begin
+	select seq_board.nextval into :new.id from dual;
+end;
+/
+
+
+create table board_comment (
+id          number, /* 댓글의 아이디 */
+board_id    number, /* 원글(board)의 아이디  */ 
+writer      varchar2(50), /* 댓글작성자:로그인한 회원의아이디 */
+writedate   date default sysdate,
+content     varchar2(4000) not null, /* 댓글내용 */
+constraint b_comment_id_pk primary key(id),
+constraint b_comment_board_id_fk foreign key(board_id)
+                              references board(id) on delete cascade,
+constraint b_comment_writer_fk foreign key(writer)
+							references member(id)  on delete cascade                                
+);
+
+create sequence seq_board_comment
+start with 1 increment by 1;
+
+create or replace trigger trg_board_comment 
+before insert on board_comment
+for each row
+begin
+	select seq_board_comment.nextval into :new.id from dual;
+end;
+/
+
+
+
+
+
